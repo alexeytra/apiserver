@@ -1,12 +1,21 @@
 package store
 
-import "http-rest-api/v1/internal/app/model"
+import (
+	"http-rest-api/v1/internal/app/model"
+)
 
 type UserRepository struct {
 	store *Store
 }
 
 func (u *UserRepository) Create(m *model.User) (*model.User, error) {
+	if err := m.Validate(); err != nil {
+		return nil, err
+	}
+
+	if err := m.BeforeCreate(); err != nil {
+		return nil, err
+	}
 	if err := u.store.db.QueryRow(
 		"INSERT INTO users (email, encrypted_password) VALUES ($1, $2) RETURNING id",
 		m.Email,
