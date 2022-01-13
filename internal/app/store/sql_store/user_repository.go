@@ -1,4 +1,4 @@
-package store
+package sql_store
 
 import (
 	"http-rest-api/v1/internal/app/model"
@@ -8,22 +8,19 @@ type UserRepository struct {
 	store *Store
 }
 
-func (u *UserRepository) Create(m *model.User) (*model.User, error) {
+func (u *UserRepository) Create(m *model.User) error {
 	if err := m.Validate(); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := m.BeforeCreate(); err != nil {
-		return nil, err
+		return err
 	}
-	if err := u.store.db.QueryRow(
+	return u.store.db.QueryRow(
 		"INSERT INTO users (email, encrypted_password) VALUES ($1, $2) RETURNING id",
 		m.Email,
 		m.EncryptedPassword,
-	).Scan(&m.ID); err != nil {
-		return nil, err
-	}
-	return m, nil
+	).Scan(&m.ID)
 }
 
 func (ur *UserRepository) FindByEmail(email string) (*model.User, error) {
